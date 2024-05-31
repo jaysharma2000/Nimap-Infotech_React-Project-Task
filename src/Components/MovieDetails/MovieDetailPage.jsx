@@ -149,13 +149,13 @@ const DetailsContainer = () => {
   
   return (
     <>
-      <main className="detailsPage">
+      <main className="detailsPage" >
         <Container>
           {titleName && titleName !== "" ? renderDataHtml() : "Loading..."}
         </Container>
-        <section className="section">
+        <section className="section" style={{height: "100%", marginBottom:"-55px"}}>
           <div className="contentHead">
-            <Container>
+            <Container style={{height: "100%"}}>  
               <Row>
                 <Col className="col-12">
                   {credits && credits.length > 0 ? (

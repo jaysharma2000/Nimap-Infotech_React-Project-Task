@@ -1,15 +1,23 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect, useCallback } from "react";
 import { Container, Form, FormControl, Button } from "react-bootstrap";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
-import { Link, useNavigate } from "react-router-dom";
-import { AppContext } from "./Context/StateContext"; 
+import { Link } from "react-router-dom";
+import { AppContext } from "./Context/StateContext";
 
-//NavBar Component
+// Debounce function
+function debounce(func, wait) {
+  let timeout;
+  return function (...args) {
+    const context = this;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(context, args), wait);
+  };
+}
+
 const HeaderComponent = () => {
-
-  const { search_movie, setSearch_movie,activeItem, setActiveItem } = useContext(AppContext);
-  let navigate = useNavigate();
+  const { search_movie, setSearch_movie, activeItem, setActiveItem } = useContext(AppContext);
+  const [debouncedSearch, setDebouncedSearch] = useState(search_movie);
 
   const navData = [
     { name: "Popular", link: "/" },
@@ -17,46 +25,51 @@ const HeaderComponent = () => {
     { name: "Upcoming", link: "/upcoming" },
   ];
 
-  //Function for search results
   const handleSearchChange = (event) => {
-    if(event.target.value === ""){
-      setSearch_movie("");
-      navigate("/");
-    };
-    setSearch_movie(event.target.value);
-};
+    setDebouncedSearch(event.target.value);
+  };
 
-    const handleSubmit = (e)=>{
-        e.preventDefault();
-        setSearch_movie(e.target.value);
-    }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSearch_movie(debouncedSearch);
+  };
 
-    const handleNavItemClick = (name) => {
-      setActiveItem(name);
-      setSearch_movie(""); 
-    };
+  const handleNavItemClick = (name) => {
+    setActiveItem(name);
+    setSearch_movie("");
+  };
 
-  //NavBar JSX
+  const debouncedSetSearchMovie = useCallback(
+    debounce((value) => setSearch_movie(value), 800),
+    []
+  );
+
+  useEffect(() => {
+    debouncedSetSearchMovie(debouncedSearch);
+  }, [debouncedSearch, debouncedSetSearchMovie]);
+
   return (
-    <header className="header" >
+    <header className="header">
       <Navbar bg="dark" expand="lg">
         <Container>
-          <Link to="/" onClick={() => (setSearch_movie(""))} style={{cursor:"pointer",textDecoration:"none"}}><Navbar.Brand>MovieDb</Navbar.Brand></Link>
-          <Navbar.Toggle aria-controls="navbarScroll" style={{border:"1px solid white" }} />
+          <Link to="/" onClick={() => setSearch_movie("")} style={{ cursor: "pointer", textDecoration: "none" }}>
+            <Navbar.Brand>MovieDb</Navbar.Brand>
+          </Link>
+          <Navbar.Toggle aria-controls="navbarScroll" style={{ border: "1px solid white" }} />
           <Navbar.Collapse id="navbarScroll">
             <Nav
               className="ms-auto my-2 my-lg-0"
-              style={{ maxHeight: "100px"}}
+              style={{ maxHeight: "100px" }}
               navbarScroll
-              onClick={() => (setSearch_movie(""))}
+              onClick={() => setSearch_movie("")}
             >
-              {navData.map((item) => {
-                return (
-                  <Nav key={item.name} onClick={() => handleNavItemClick(item.name)}>
-                    <Link to={item.link} className={`nav-link ${activeItem === item.name ? 'active' : ''}`}>{item.name}</Link>
-                  </Nav>
-                );
-              })}
+              {navData.map((item) => (
+                <Nav key={item.name} onClick={() => handleNavItemClick(item.name)}>
+                  <Link to={item.link} className={`nav-link ${activeItem === item.name ? 'active' : ''}`}>
+                    {item.name}
+                  </Link>
+                </Nav>
+              ))}
             </Nav>
             <Form className="d-flex w-40" autoComplete="off" onSubmit={handleSubmit}>
               <FormControl
@@ -64,7 +77,7 @@ const HeaderComponent = () => {
                 placeholder="Movie Name"
                 className="me-2"
                 aria-label="search"
-                value={search_movie}
+                value={debouncedSearch}
                 onChange={handleSearchChange}
               ></FormControl>
               <Button variant="secondary" type="submit">
@@ -79,3 +92,8 @@ const HeaderComponent = () => {
 };
 
 export default HeaderComponent;
+
+
+
+
+

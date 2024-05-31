@@ -51,7 +51,7 @@ function DarkVariantExample({data}) {
         autoPlay={true}
         autoPlayInterval={5000}
         infinite={true}
-        disableButtonsControls
+        // disableButtonsControls
         disableDotsControls
         mouseTracking 
         items={items} />
